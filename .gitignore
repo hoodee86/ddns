@@ -1,0 +1,30 @@
+# 二进制文件
+*.bin
+*_linux
+*_darwin
+*_windows
+
+# 编译输出
+/bin/
+/dist/
+
+# Go mod cache
+vendor/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+*.out
+*.cover
+
+# 临时文件
+*.tmp
