@@ -1,7 +1,15 @@
 {
-  "sender_email": "",
-  "sender_password": "your_qq_authorization_code",
-  "recipient_email": "",
-  "smtp_server": "smtp.qq.com",
-  "smtp_port": 587
+  "email": {
+    "sender_email": "",
+    "sender_password": "your_qq_authorization_code",
+    "recipient_email": "",
+    "smtp_server": "smtp.qq.com",
+    "smtp_port": 587
+  },
+  "aliyun": {
+    "aliyun_access_key_id": "your_access_key_id",
+    "aliyun_access_key_secret": "your_access_key_secret",
+    "aliyun_domain": "yccloud.org.cn",
+    "aliyun_rr": "@"
+  }
 }

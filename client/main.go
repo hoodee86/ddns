@@ -34,11 +34,25 @@ func sendEmailNotification(config *EmailConfig, oldIP, newIP string) {
 	}
 }
 
+// updateAliyunDNS 更新阿里云 DNS 解析记录
+func updateAliyunDNS(dnsClient *AliyunDNSClient, ip string) {
+	if err := dnsClient.UpdateDNSRecord(ip); err != nil {
+		fmt.Printf("[%s] 阿里云 DNS 更新失败: %v\n", time.Now().Format("15:04:05"), err)
+	}
+}
+
 func main() {
-	// 加载邮件配置
+	// 加载配置
 	config, err := LoadConfig("config.json")
 	if err != nil {
 		fmt.Printf("配置加载失败: %v\n", err)
+		return
+	}
+
+	// 初始化阿里云 DNS 客户端
+	dnsClient, err := NewAliyunDNSClient(&config.Aliyun)
+	if err != nil {
+		fmt.Printf("阿里云 DNS 客户端初始化失败: %v\n", err)
 		return
 	}
 
@@ -50,6 +64,7 @@ func main() {
 	}
 
 	fmt.Printf("Client 启动，每隔 30 秒向 %s 发送请求\n", serverURL)
+	fmt.Printf("域名: %s.%s\n", config.Aliyun.RR, config.Aliyun.Domain)
 
 	var lastIP string // 记录上一次的 IP 地址
 
@@ -67,13 +82,19 @@ func main() {
 				currentIP := strings.TrimSpace(string(body))
 				fmt.Printf("[%s] 我的 IP 地址是: %s\n", time.Now().Format("15:04:05"), currentIP)
 
-				// 检测 IP 是否变化
-				if lastIP != "" && lastIP != currentIP {
-					fmt.Printf("[%s] 检测到 IP 变化: %s -> %s\n", time.Now().Format("15:04:05"), lastIP, currentIP)
-					go sendEmailNotification(config, lastIP, currentIP) // 异步发送邮件，避免阻塞主流程
-				}
+				// 检测 IP 是否变化（包括首次获取）
+				if lastIP != currentIP {
+					// 更新阿里云 DNS 解析
+					go updateAliyunDNS(dnsClient, currentIP)
 
-				lastIP = currentIP
+					// 非首次获取时发送邮件通知
+					if lastIP != "" {
+						fmt.Printf("[%s] 检测到 IP 变化: %s -> %s\n", time.Now().Format("15:04:05"), lastIP, currentIP)
+						go sendEmailNotification(&config.Email, lastIP, currentIP)
+					}
+
+					lastIP = currentIP
+				}
 			}
 		}
 
